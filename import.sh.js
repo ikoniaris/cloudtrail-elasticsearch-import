@@ -247,7 +247,13 @@ function processItemWorker(task, processItemWorkerCB) {
             // ref: https://github.com/ramv/node-elastical/blob/master/lib/client.js#L129
             var _bulk = [];
             for (var i=0,l=o.Records.length; i<l; i++) {
-                _bulk.push({
+                // replace eventTime with a @timestamp field for Kibana,
+		// following Logstash's CloudTrail codec logic
+		record = JSON.stringify(o.Records[i])
+		record = record.replace("eventTime", "@timestamp")
+		o.Records[i] = JSON.parse(record)
+		
+		_bulk.push({
                     index: {
                         index: task.cloudtrailIndexName
                         , type: "event"
